@@ -98,4 +98,12 @@ pub mod test {
         let db = init_db(connection_type).await.unwrap();
         assert_eq!(db.close().unwrap(), ());
     }
+    
+    #[tokio::test]
+    async fn init_db_with_path() {
+        let connection_type = ConnectionType::FromPath("./test.db".to_string());
+        let db = init_db(connection_type).await.unwrap();
+        assert_eq!(db.close().unwrap(), ());
+        
+    }
 }
