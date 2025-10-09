@@ -85,3 +85,17 @@ async fn main() -> Result<()> {
     println!("{:#?}", feed);
     Ok(())
 }
+
+
+#[cfg(test)]
+pub mod test {
+    use super::*;
+    use pretty_assertions::assert_eq;
+    
+    #[tokio::test]
+    async fn init_db_no_path() {
+        let connection_type = ConnectionType::InMemory;
+        let db = init_db(connection_type).await.unwrap();
+        assert_eq!(db.close().unwrap(), ());
+    }
+}
