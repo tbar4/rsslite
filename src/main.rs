@@ -1,71 +1,35 @@
 use anyhow::Result;
-use rss::Channel;
-use rusqlite::Connection;
+use dotenv::dotenv;
+use rss::{Category, Channel, Enclosure, Item, Source};
+use sea_orm::{
+    Database, DatabaseConnection, FromJsonQueryResult, entity::*, sea_query::OnConflict,
+};
 use thiserror::Error;
 
-const RSS_URL: &str = "https://trevor-barnes.com/feed";
+use models::rss::{rss_channel, rss_item};
 
 #[derive(Debug, Error)]
 pub enum RssLiteError {
-    #[error("SQLite Connection Error")]
-    ConnectionError(#[from] rusqlite::Error),
+    #[error("SeaORM Connection Error")]
+    ConnectionError(#[from] sea_orm::error::ConnAcquireErr),
+    #[error("Environment Variable Error")]
+    EnvError(#[from] dotenv::Error),
 }
 
-#[derive(Debug)]
-pub struct RSSChannel {
-    pub title: String,
-    pub link: String,
-    pub description: String,
-    pub language: Option<String>,
-    pub copyright: Option<String>,
-    pub managing_editor: Option<String>,
-    pub webmaster: Option<String>,
-    pub pub_date: Option<String>,
-    pub last_build_date: Option<String>,
-    pub categories: Vec<rss::Category>,
-    pub generator: Option<String>,
-    pub docs: Option<String>,
-    pub cloud: Option<rss::Cloud>,
-    pub rating: Option<String>,
-    pub ttl: Option<String>,
-    pub image: Option<rss::Image>,
-    pub text_input: Option<rss::TextInput>,
-    pub skip_hours: Vec<String>,
-    pub skip_days: Vec<String>,
-    pub items: Vec<rss::Item>,
-    pub extensions: rss::extension::ExtensionMap,
-    pub itunes_ext: Option<rss::extension::itunes::ITunesChannelExtension>,
-    pub dublin_core_ext: Option<rss::extension::dublincore::DublinCoreExtension>,
-    pub syndication_ext: Option<rss::extension::syndication::SyndicationExtension>,
-    pub namespaces: std::collections::BTreeMap<String, String>,
-}
+const RSS_URL: &str = "https://trevor-barnes.com/feed";
 
 pub enum ConnectionType {
     InMemory,
     FromPath(String),
 }
 
-async fn init_db(connection_type: ConnectionType) -> Result<Connection> {
+async fn init_db(connection_type: ConnectionType) -> Result<DatabaseConnection> {
     let conn = match connection_type {
-        ConnectionType::InMemory => Connection::open_in_memory(),
-        ConnectionType::FromPath(path) => Connection::open(path),
+        ConnectionType::InMemory => Database::connect("sqlite::memory:").await?,
+        ConnectionType::FromPath(path) => Database::connect(path).await?,
     };
 
-    Ok(conn.unwrap_or(Connection::open_in_memory()?))
-}
-
-async fn write_feed_to_db(conn: Connection, feed: &Channel) -> Result<()> {
-    conn.execute(
-        "INSERT INTO rss_feed (title, link, description, etc...) VALUES (?1, ?2, ?3, 4?...)",
-        (
-            feed.title.clone(),
-            feed.link.clone(),
-            feed.description.clone(),
-            "etc",
-        ),
-    )?;
-
-    Ok(())
+    Ok(conn)
 }
 
 async fn read_feed(url: &str) -> Result<Channel> {
@@ -75,35 +39,98 @@ async fn read_feed(url: &str) -> Result<Channel> {
     Ok(channel)
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    let feed = read_feed(RSS_URL).await?;
+async fn upsert_feed_to_db(conn: DatabaseConnection, feed: Channel) -> Result<()> {
+    for f in feed.items() {
+        let categories = Some(
+            f.categories
+                .iter()
+                .map(|c| c.name.clone())
+                .collect::<Vec<String>>()
+                .join(", "),
+        );
 
-    let conn = init_db(ConnectionType::InMemory).await?;
-    write_feed_to_db(conn, &feed).await?;
+        let feed_item = rss_item::ActiveModel {
+            title: Set(f.title.clone()),
+            link: Set(f.link.clone().unwrap()),
+            description: Set(f.description.clone()),
+            author: Set(f.author.clone()),
+            categories: Set(categories),
+            comments: Set(f.comments.clone()),
+            enclosure_url: Set(Some(
+                f.enclosure.clone().unwrap_or(Enclosure::default()).url,
+            )),
+            enclosure_length: Set(Some(
+                f.enclosure.clone().unwrap_or(Enclosure::default()).length,
+            )),
+            enclosure_mime_type: Set(Some(
+                f.enclosure
+                    .clone()
+                    .unwrap_or(Enclosure::default())
+                    .mime_type,
+            )),
+            guid: Set(Some(f.guid.clone().unwrap().value)),
+            pub_date: Set(f.pub_date.clone()),
+            source_title: Set(f.source.clone().unwrap_or(Source::default()).title),
+            source_url: Set(Some(f.source.clone().unwrap_or(Source::default()).url)),
+            content: Set(f.content.clone()),
+            ..Default::default()
+        };
 
-    println!("{:#?}", feed);
+        rss_item::Entity::insert(feed_item)
+            .on_conflict(
+                OnConflict::column(rss_item::Column::Link)
+                    .update_columns([
+                        rss_item::Column::Title,
+                        rss_item::Column::Description,
+                        rss_item::Column::Author,
+                        rss_item::Column::Categories,
+                        rss_item::Column::Comments,
+                        rss_item::Column::EnclosureUrl,
+                        rss_item::Column::EnclosureLength,
+                        rss_item::Column::EnclosureMimeType,
+                        rss_item::Column::Guid,
+                        rss_item::Column::PubDate,
+                        rss_item::Column::SourceTitle,
+                        rss_item::Column::SourceUrl,
+                        rss_item::Column::Content,
+                    ])
+                    .to_owned(),
+            )
+            .exec(&conn)
+            .await?;
+
+        println!("{:#?}", f);
+    }
+
     Ok(())
 }
 
+#[tokio::main]
+async fn main() -> Result<()> {
+    dotenv().ok();
+    let db_url = dotenv::var("DATABASE_URL")?;
+
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_test_writer()
+        .init();
+
+    let feed = read_feed(RSS_URL).await?;
+    println!("{:#?}", feed);
+    let conn = init_db(ConnectionType::FromPath(db_url)).await?;
+    upsert_feed_to_db(conn, feed).await?;
+
+    Ok(())
+}
 
 #[cfg(test)]
 pub mod test {
     use super::*;
-    use pretty_assertions::assert_eq;
-    
+    //use pretty_assertions::assert_eq;
+
     #[tokio::test]
-    async fn init_db_no_path() {
-        let connection_type = ConnectionType::InMemory;
-        let db = init_db(connection_type).await.unwrap();
-        assert_eq!(db.close().unwrap(), ());
-    }
-    
-    #[tokio::test]
-    async fn init_db_with_path() {
-        let connection_type = ConnectionType::FromPath("./test.db".to_string());
-        let db = init_db(connection_type).await.unwrap();
-        assert_eq!(db.close().unwrap(), ());
-        
+    async fn valid_db_connection() {
+        let db = init_db(ConnectionType::InMemory).await.unwrap();
+        assert!(db.ping().await.is_ok());
     }
 }
