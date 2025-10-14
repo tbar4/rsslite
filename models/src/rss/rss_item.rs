@@ -22,6 +22,7 @@ pub struct Model {
     pub source_title: Option<String>,
     pub source_url: Option<String>,
     pub content: Option<String>,
+    pub dublin_core_ext_contributors: Option<Json>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

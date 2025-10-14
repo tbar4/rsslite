@@ -93,13 +93,14 @@ async fn upsert_feed_to_db(conn: DatabaseConnection, feed: Channel) -> Result<()
                         rss_item::Column::SourceTitle,
                         rss_item::Column::SourceUrl,
                         rss_item::Column::Content,
+                        rss_item::Column::DublinCoreExtContributors
                     ])
                     .to_owned(),
             )
             .exec(&conn)
             .await?;
 
-        println!("{:#?}", f);
+       //println!("{:#?}", f);
     }
 
     Ok(())
@@ -116,7 +117,7 @@ async fn main() -> Result<()> {
         .init();
 
     let feed = read_feed(RSS_URL).await?;
-    println!("{:#?}", feed);
+    //println!("{:#?}", feed);
     let conn = init_db(ConnectionType::FromPath(db_url)).await?;
     upsert_feed_to_db(conn, feed).await?;
 

@@ -26,6 +26,7 @@ impl MigrationTrait for Migration {
                     .col(string_null(RssItem::SourceTitle))
                     .col(string_null(RssItem::SourceUrl))
                     .col(string_null(RssItem::Content))
+                    .col(json_null(RssItem::DublinCoreExtContributors))
                     //.col(string_null(RssItem::Extensions))
                     //.col(string_null(RssItem::ItunesExt))
                     //.col(string_null(RssItem::DublinCoreExt))
@@ -61,5 +62,19 @@ enum RssItem {
     Content,
     //Extensions,
     //ItunesExt,
-    //DublinCoreExt,
+    DublinCoreExtContributors,
+    DublinCoreExtCoverages,
+    DublinCoreExtCreators,
+    DublinCoreExtDates,
+    DublinCoreExtDescriptions,
+    DublinCoreExtFormats,
+    DublinCoreExtIdentifiers,
+    DublinCoreExtLanguages,
+    DublinCoreExtPublishers,
+    DublinCoreExtRelations,
+    DublinCoreExtRights,
+    DublinCoreExtSources,
+    DublinCoreExtSubjects,
+    DublinCoreExtTitles,
+    DublinCoreExtTypes,
 }
