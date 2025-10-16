@@ -1,0 +1,13 @@
+[package]
+name = "controllers"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+models = { path = "../models" }
+reqwest = "0.12.24"
+rss = "2.0.12"
+sea-orm = { version = "1.1.17", features = ["runtime-tokio-rustls", "sqlx-sqlite"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0"

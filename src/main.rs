@@ -1,12 +1,11 @@
 use anyhow::Result;
+use controllers::rss::rss_channel::{self, LoadKey};
 use dotenv::dotenv;
 use rss::{Category, Channel, Enclosure, Item, Source};
 use sea_orm::{
     Database, DatabaseConnection, FromJsonQueryResult, entity::*, sea_query::OnConflict,
 };
 use thiserror::Error;
-
-use models::rss::{rss_channel, rss_item};
 
 #[derive(Debug, Error)]
 pub enum RssLiteError {
@@ -31,14 +30,7 @@ async fn init_db(connection_type: ConnectionType) -> Result<DatabaseConnection> 
 
     Ok(conn)
 }
-
-async fn read_feed(url: &str) -> Result<Channel> {
-    let feed = reqwest::get(url).await?.bytes().await?;
-
-    let channel = Channel::read_from(&feed[..])?;
-    Ok(channel)
-}
-
+/*
 async fn upsert_feed_to_db(conn: DatabaseConnection, feed: Channel) -> Result<()> {
     for f in feed.items() {
         let categories = Some(
@@ -93,7 +85,6 @@ async fn upsert_feed_to_db(conn: DatabaseConnection, feed: Channel) -> Result<()
                         rss_item::Column::SourceTitle,
                         rss_item::Column::SourceUrl,
                         rss_item::Column::Content,
-                        rss_item::Column::DublinCoreExtContributors
                     ])
                     .to_owned(),
             )
@@ -105,33 +96,23 @@ async fn upsert_feed_to_db(conn: DatabaseConnection, feed: Channel) -> Result<()
 
     Ok(())
 }
-
+*/
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenv().ok();
     let db_url = dotenv::var("DATABASE_URL")?;
-
+    let db = init_db(ConnectionType::FromPath(db_url)).await?;
+    
+    let key = LoadKey::Url(RSS_URL.into());
+    
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
         .with_test_writer()
         .init();
-
-    let feed = read_feed(RSS_URL).await?;
-    //println!("{:#?}", feed);
-    let conn = init_db(ConnectionType::FromPath(db_url)).await?;
-    upsert_feed_to_db(conn, feed).await?;
+    
+    controllers::rss::prelude::rss_channel::add(&db, key).await?;
 
     Ok(())
 }
 
-#[cfg(test)]
-pub mod test {
-    use super::*;
-    //use pretty_assertions::assert_eq;
 
-    #[tokio::test]
-    async fn valid_db_connection() {
-        let db = init_db(ConnectionType::InMemory).await.unwrap();
-        assert!(db.ping().await.is_ok());
-    }
-}
