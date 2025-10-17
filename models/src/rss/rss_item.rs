@@ -15,6 +15,8 @@ pub struct Model {
     pub comments: Option<String>,
     pub pub_date: Option<String>,
     pub content: Option<String>,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
     pub extensions: Json,
 }
 

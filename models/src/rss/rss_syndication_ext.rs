@@ -11,6 +11,8 @@ pub struct Model {
     pub period: String,
     pub frequency: i32,
     pub base: String,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

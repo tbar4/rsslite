@@ -26,6 +26,8 @@ impl MigrationTrait for Migration {
                     .col(string_null(RssChannel::Docs))
                     .col(string_null(RssChannel::Rating))
                     .col(string_null(RssChannel::Ttl))
+                    .col(timestamp(RssChannel::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssChannel::UpdatedAt).default(Expr::current_timestamp()))
                     .col(json(RssChannel::SkipHours))
                     .col(json(RssChannel::SkipDays))
                     .col(json(RssChannel::Extensions))
@@ -48,6 +50,8 @@ impl MigrationTrait for Migration {
                     .col(string_null(RssItem::Comments))
                     .col(string_null(RssItem::PubDate))
                     .col(string_null(RssItem::Content))
+                    .col(timestamp(RssItem::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssItem::UpdatedAt).default(Expr::current_timestamp()))
                     .col(json(RssItem::Extensions))
                     .foreign_key(
                         ForeignKey::create()
@@ -70,6 +74,8 @@ impl MigrationTrait for Migration {
                     .col(integer_null(RssCategory::ItemId))
                     .col(string(RssCategory::Name))
                     .col(string_null(RssCategory::Domain))
+                    .col(timestamp(RssCategory::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssCategory::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-category-channel")
@@ -97,6 +103,8 @@ impl MigrationTrait for Migration {
                     .col(string(RssItemEnclosure::Url))
                     .col(string(RssItemEnclosure::Length))
                     .col(string(RssItemEnclosure::MimeType))
+                    .col(timestamp(RssItemEnclosure::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssItemEnclosure::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-enclosure-item")
@@ -117,6 +125,8 @@ impl MigrationTrait for Migration {
                     .col(integer(RssItemGuid::ItemId))
                     .col(string(RssItemGuid::Value))
                     .col(string(RssItemGuid::Permalink))
+                    .col(timestamp(RssItemGuid::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssItemGuid::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-guid-item")
@@ -145,6 +155,14 @@ impl MigrationTrait for Migration {
                     .col(string_null(RssItunesItemExtension::Subtitle))
                     .col(string_null(RssItunesItemExtension::Summary))
                     .col(string_null(RssItunesItemExtension::Keywords))
+                    .col(
+                        timestamp(RssItunesItemExtension::CreatedAt)
+                            .default(Expr::current_timestamp()),
+                    )
+                    .col(
+                        timestamp(RssItunesItemExtension::UpdatedAt)
+                            .default(Expr::current_timestamp()),
+                    )
                     .col(string_null(RssItunesItemExtension::Episode))
                     .col(string_null(RssItunesItemExtension::Season))
                     .col(string_null(RssItunesItemExtension::EpisodeType))
@@ -184,6 +202,8 @@ impl MigrationTrait for Migration {
                     .col(json(RssDublinCoreExt::Subjects))
                     .col(json(RssDublinCoreExt::Titles))
                     .col(json(RssDublinCoreExt::Types))
+                    .col(timestamp(RssDublinCoreExt::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssDublinCoreExt::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-dublincore-item")
@@ -207,6 +227,8 @@ impl MigrationTrait for Migration {
                     .col(string(RssCloud::Path))
                     .col(string(RssCloud::RegisterProcedure))
                     .col(string(RssCloud::Protocol))
+                    .col(timestamp(RssCloud::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssCloud::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-cloud-channel")
@@ -230,7 +252,9 @@ impl MigrationTrait for Migration {
                     .col(string(RssImage::Link))
                     .col(string_null(RssImage::Width))
                     .col(string_null(RssImage::Height))
-                    .col(string_null(RssImage::Description))
+                    .col(string(RssImage::Description))
+                    .col(timestamp(RssImage::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssImage::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-image-channel")
@@ -253,6 +277,8 @@ impl MigrationTrait for Migration {
                     .col(string(RssTextInput::Description))
                     .col(string(RssTextInput::Name))
                     .col(string(RssTextInput::Link))
+                    .col(timestamp(RssTextInput::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssTextInput::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-text-channel")
@@ -274,6 +300,8 @@ impl MigrationTrait for Migration {
                     .col(string(RssSyndicationExt::Period))
                     .col(integer(RssSyndicationExt::Frequency))
                     .col(string(RssSyndicationExt::Base))
+                    .col(timestamp(RssSyndicationExt::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp(RssSyndicationExt::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-syndication-channel")
@@ -333,6 +361,8 @@ impl MigrationTrait for Migration {
 
 #[derive(DeriveIden)]
 enum RssChannel {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     Title,
@@ -356,6 +386,8 @@ enum RssChannel {
 
 #[derive(DeriveIden)]
 enum RssItem {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ChannelId,
@@ -371,6 +403,8 @@ enum RssItem {
 
 #[derive(DeriveIden)]
 enum RssCategory {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ChannelId,
@@ -381,6 +415,8 @@ enum RssCategory {
 
 #[derive(DeriveIden)]
 enum RssItemEnclosure {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ItemId,
@@ -391,6 +427,8 @@ enum RssItemEnclosure {
 
 #[derive(DeriveIden)]
 enum RssItemGuid {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ItemId,
@@ -400,6 +438,8 @@ enum RssItemGuid {
 
 #[derive(DeriveIden)]
 enum RssItunesItemExtension {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ItemId,
@@ -420,6 +460,8 @@ enum RssItunesItemExtension {
 
 #[derive(DeriveIden)]
 enum RssDublinCoreExt {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ItemId,
@@ -442,6 +484,8 @@ enum RssDublinCoreExt {
 
 #[derive(DeriveIden)]
 enum RssCloud {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ChannelId,
@@ -454,6 +498,8 @@ enum RssCloud {
 
 #[derive(DeriveIden)]
 enum RssImage {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ChannelId,
@@ -467,6 +513,8 @@ enum RssImage {
 
 #[derive(DeriveIden)]
 enum RssTextInput {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ChannelId,
@@ -478,6 +526,8 @@ enum RssTextInput {
 
 #[derive(DeriveIden)]
 enum RssSyndicationExt {
+    CreatedAt,
+    UpdatedAt,
     Table,
     Id,
     ChannelId,

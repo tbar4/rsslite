@@ -23,6 +23,8 @@ pub struct Model {
     pub subjects: Json,
     pub titles: Json,
     pub types: Json,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

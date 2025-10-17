@@ -13,7 +13,9 @@ pub struct Model {
     pub link: String,
     pub width: Option<String>,
     pub height: Option<String>,
-    pub description: Option<String>,
+    pub description: String,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -20,6 +20,8 @@ pub struct Model {
     pub docs: Option<String>,
     pub rating: Option<String>,
     pub ttl: Option<String>,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
     pub skip_hours: Json,
     pub skip_days: Json,
     pub extensions: Json,

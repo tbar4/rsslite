@@ -18,6 +18,8 @@ pub struct Model {
     pub subtitle: Option<String>,
     pub summary: Option<String>,
     pub keywords: Option<String>,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
     pub episode: Option<String>,
     pub season: Option<String>,
     pub episode_type: Option<String>,

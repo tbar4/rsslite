@@ -53,18 +53,19 @@ pub async fn add_channel(db: &DatabaseConnection, url: &str) -> Result<()> {
 
     if let Some(chan) = channel_dupe {
         let channel_id = chan.id;
-        tracing::info!("Channel already exists...\nAdding feed items...");
+        tracing::info!("Channel {} already exists...\nAdding feed items...", chan.title);
         add_item(db, channel_clone, channel_id).await?;
-        tracing::info!("Done adding feed items...");
+        tracing::info!("Done adding feed items from channel {}...", chan.title);
     } else {
-        tracing::info!("Channel Not Found...\nAdding Channel to DB...");
+        tracing::info!("Channel {:?} Not Found...\nAdding Channel to DB...", channel_model.title);
+        let channel_model_clone = channel_model.clone();
         let channel_id = RssChannel::insert(channel_model)
             .exec(db)
             .await?
             .last_insert_id;
-        tracing::info!("Adding feed items...");
+        tracing::info!("Adding feed items to {:?}...", channel_model_clone.title);
         add_item(db, channel_clone, channel_id).await?;
-        tracing::info!("Done adding feed items...");
+        tracing::info!("Done adding feed items to {:?}...", channel_model_clone.title);
     }
 
     Ok(())

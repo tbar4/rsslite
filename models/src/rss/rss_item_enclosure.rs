@@ -11,6 +11,8 @@ pub struct Model {
     pub url: String,
     pub length: String,
     pub mime_type: String,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

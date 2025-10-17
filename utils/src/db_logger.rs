@@ -4,14 +4,14 @@
 // SQLite database using SeaORM. The writer is deliberately fire‑and‑forget – it
 // spawns an async task that performs the insert, so the synchronous `write`
 // call never blocks the tracing subscriber.
-
+/* 
 use chrono::Utc;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Set};
 use std::io::{Error, ErrorKind, Result as IoResult, Write};
 use std::sync::Arc;
 use tokio::task;
 
-use models::rss::log;
+//use models::rss::log;
 
 use tracing_subscriber::fmt::MakeWriter;
 
@@ -96,3 +96,4 @@ impl Write for DbWriter {
         Ok(())
     }
 }
+*/

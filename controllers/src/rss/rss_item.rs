@@ -1,15 +1,23 @@
 use anyhow::Result;
+use models::rss::{
+    rss_channel,
+    rss_item::{self, Column, Entity as RssItem},
+};
 use rss::Channel;
-use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, Set, ColumnTrait};
-use models::rss::rss_item::{self, Column, Entity as RssItem};
-
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 
 pub async fn add_item(db: &DatabaseConnection, channel: Channel, channel_id: i32) -> Result<()> {
     let mut item_count = 0;
     for item in channel.items() {
         let item_clone = item.clone();
         let link = item_clone.link.clone().unwrap();
-        
+
+        tracing::debug!(
+            "Adding item {} from url {}...",
+            item_clone.title().unwrap_or_default(),
+            item_clone.link().unwrap_or_default()
+        );
+
         let item_model = rss_item::ActiveModel {
             channel_id: Set(channel_id),
             title: Set(item_clone.title),
@@ -22,22 +30,25 @@ pub async fn add_item(db: &DatabaseConnection, channel: Channel, channel_id: i32
             extensions: Set(serde_json::json!(item.extensions)),
             ..Default::default()
         };
-        
+
         let item_dupe = RssItem::find()
             .filter(Column::Link.eq(link))
             .one(db)
             .await?;
-        
+
         if let None = item_dupe {
-            let _last_id = RssItem::insert(item_model)
-                .exec(db)
+            let _last_id = RssItem::insert(item_model).exec(db).await?.last_insert_id;
+
+            let rss_channel = rss_channel::Entity::find_by_id(channel_id)
+                .one(db)
                 .await?
-                .last_insert_id;
-            
+                .unwrap();
+
             item_count += 1;
+            tracing::debug!("Rss Channel {} has added {} items...", rss_channel.title, item_count);
         }
     }
     tracing::info!("Added {} items to DB...", item_count);
-    
+
     Ok(())
 }

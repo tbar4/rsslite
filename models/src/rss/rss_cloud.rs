@@ -13,6 +13,8 @@ pub struct Model {
     pub path: String,
     pub register_procedure: String,
     pub protocol: String,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
