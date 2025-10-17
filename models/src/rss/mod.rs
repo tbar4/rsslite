@@ -2,6 +2,7 @@
 
 pub mod prelude;
 
+pub mod log;
 pub mod rss_category;
 pub mod rss_channel;
 pub mod rss_cloud;

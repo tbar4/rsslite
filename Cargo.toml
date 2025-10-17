@@ -7,7 +7,7 @@ edition = "2024"
 members = [
     ".",
     "models",
-    "migration", "controllers",
+    "migration", "controllers", "utils",
 ]
 
 [dependencies]
@@ -24,6 +24,7 @@ models =  { path = "models" }
 serde_json = "1.0"
 serde = { version = "1.0.228", features = ["derive"] }
 controllers = { path = "controllers"}
+utils = { path = "utils" }
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"

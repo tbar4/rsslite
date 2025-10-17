@@ -290,8 +290,44 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
+            .drop_table(Table::drop().table(RssCategory::Table).to_owned())
+            .await?;
+        manager
             .drop_table(Table::drop().table(RssChannel::Table).to_owned())
-            .await
+            .await?;
+        manager
+            .drop_table(Table::drop().table(RssCloud::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(RssDublinCoreExt::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(RssImage::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(RssItem::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(RssItemEnclosure::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(RssItemGuid::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(
+                Table::drop()
+                    .table(RssItunesItemExtension::Table)
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(RssSyndicationExt::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(RssTextInput::Table).to_owned())
+            .await?;
+
+        Ok(())
     }
 }
 
